@@ -24,6 +24,7 @@
               <object class="GtkStackSwitcher" id="switcher_main">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="homogeneous">True</property>
                 <property name="stack">stack_main</property>
               </object>
             </child>
@@ -85,6 +86,7 @@
                   <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkLabel" id="label_time_sys_text">
                         <property name="visible">True</property>
@@ -165,6 +167,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="vexpand">True</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkLabel">
                         <property name="visible">True</property>
@@ -214,6 +217,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="vexpand">True</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkLabel">
                         <property name="visible">True</property>
