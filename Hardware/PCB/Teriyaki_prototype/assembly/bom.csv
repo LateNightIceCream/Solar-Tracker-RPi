@@ -1,0 +1,32 @@
+Comment,Designator,Footprint,LCSC Part #
+"100n Unpolarized capacitor, small symbol","C1,C3,C4,C6",C_0805_2012Metric,C49678
+"470u Unpolarized capacitor, small symbol",C2,CP_Radial_D8.0mm_P3.50mm,
+"4.7u Unpolarized capacitor, small symbol",C5,C_0603_1608Metric,C19666
+"330u Unpolarized capacitor, small symbol",C7,CP_Radial_D8.0mm_P3.50mm,
+"12p Unpolarized capacitor, small symbol","C8,C9",C_0402_1005Metric,C1547
+"20n Unpolarized capacitor, small symbol",C10,C_0603_1608Metric,C21120
+"1u Unpolarized capacitor, small symbol",C11,C_0603_1608Metric,C15849
+"10n Unpolarized capacitor, small symbol",C12,C_0603_1608Metric,C57112
+"SS54 Schottky diode, small symbol",D1,D_SMA,C22452
+MountingHole_Pad Mounting Hole with connection,"H1,H2,H3,H4",MountingHole_3.5mm_Pad_Via,
+USB_B_Micro USB Micro Type B connector,J1,USB_Micro-AB_Molex_47590-0001,
+"Conn_01x02 Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)","J2,J4",PinHeader_1x02_P2.54mm_Vertical,
+"Conn_01x10 Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)",J3,PinHeader_1x10_P2.54mm_Vertical,
+"Conn_01x04 Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)",J_SWIM1,PinHeader_1x04_P2.54mm_Vertical,
+"22u Inductor, small symbol",L1,L_7.3x7.3_H4.5,C216197
+RED Light emitting diode,"LED1,LED2,LED3,LED_3V31,LED_5V1,LED_RX1,LED_TX1",LED_0805_2012Metric,C84256
+"4k7 Resistor, small symbol",R1,R_0402_1005Metric,C25900
+"10k Resistor, small symbol",R2,R_0402_1005Metric,C25744
+"0R Resistor, small symbol","R3,R4",R_0805_2012Metric,C17477
+1k2 Resistor,"R5,R6,R7,R11,R13,R16",R_0805_2012Metric,C17379
+"1k Resistor, small symbol","R8,R10",R_0402_1005Metric,C11702
+"680R Resistor, small symbol",R9,R_0402_1005Metric,C25130
+"47 Resistor, small symbol",R12,R_0402_1005Metric,C25118
+"2k2 Resistor, small symbol","R14,R15",R_0603_1608Metric,C4190
+3k Resistor,R17,R_0805_2012Metric,C17661
+TestPoint test point,"TP1,TP2",TestPoint_Loop_D3.80mm_Drill2.0mm,
+XL1509 ,U1,HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.1mm,C74192
+"STM8L051F3P6 16MHz, 8K Flash, 1k RAM, 256 EEPROM, RTC, USART, I2C, SPI, ADC, TSSOP20",U2,TSSOP-20_4.4x6.5mm_P0.65mm,C18088
+"FT232RL USB to Serial Interface, SSOP-28",U3,SSOP-28_5.3x10.2mm_P0.65mm,C8690
+"USBLC6-2SC6 Very low capacitance ESD protection diode, 2 data-line, SOT-23-6",U4,SOT-23-6,C7519
+"16MHz Four pin crystal, GND on pins 2 and 4, small symbol",Y1,Crystal_SMD_3225-4Pin_3.2x2.5mm,C13738
