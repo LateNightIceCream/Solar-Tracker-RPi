@@ -1,4 +1,9 @@
-# Power Supply
+# Prototype Board (Teriyaki)
+[Teriyaki Image](teriyaki.png)
+
+# Real Board
+
+## Power Supply
 
 Switching Regulator (3A)
 - LM2596
@@ -8,4 +13,5 @@ Switching Regulator (3A)
   - Input Cap: 680UF oder 2x 330UF parallel (gleicher wie Output Cap) 35V (through hole, selbstbestücken?)
   
 LEDs
+
 

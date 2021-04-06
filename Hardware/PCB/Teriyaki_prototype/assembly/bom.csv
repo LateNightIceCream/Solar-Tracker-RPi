@@ -5,7 +5,7 @@ Comment,Designator,Footprint,LCSC Part #
 "330u Unpolarized capacitor, small symbol",C7,CP_Radial_D8.0mm_P3.50mm,
 "12p Unpolarized capacitor, small symbol","C8,C9",C_0402_1005Metric,C1547
 "20n Unpolarized capacitor, small symbol",C10,C_0603_1608Metric,C21120
-"1u Unpolarized capacitor, small symbol",C11,C_0603_1608Metric,C15849
+"1u Unpolarized capacitor, small symbol","C11,C13",C_0603_1608Metric,C15849
 "10n Unpolarized capacitor, small symbol",C12,C_0603_1608Metric,C57112
 "SS54 Schottky diode, small symbol",D1,D_SMA,C22452
 MountingHole_Pad Mounting Hole with connection,"H1,H2,H3,H4",MountingHole_3.5mm_Pad_Via,
@@ -26,7 +26,7 @@ RED Light emitting diode,"LED1,LED2,LED3,LED_3V31,LED_5V1,LED_RX1,LED_TX1",LED_0
 3k Resistor,R17,R_0805_2012Metric,C17661
 TestPoint test point,"TP1,TP2",TestPoint_Loop_D3.80mm_Drill2.0mm,
 XL1509 ,U1,HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.1mm,C74192
-"STM8L051F3P6 16MHz, 8K Flash, 1k RAM, 256 EEPROM, RTC, USART, I2C, SPI, ADC, TSSOP20",U2,TSSOP-20_4.4x6.5mm_P0.65mm,C18088
+STM8S105K6 ,U2,LQFP-32_7x7mm_P0.8mm,C8254
 "FT232RL USB to Serial Interface, SSOP-28",U3,SSOP-28_5.3x10.2mm_P0.65mm,C8690
 "USBLC6-2SC6 Very low capacitance ESD protection diode, 2 data-line, SOT-23-6",U4,SOT-23-6,C7519
 "16MHz Four pin crystal, GND on pins 2 and 4, small symbol",Y1,Crystal_SMD_3225-4Pin_3.2x2.5mm,C13738
