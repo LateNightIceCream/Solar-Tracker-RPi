@@ -1,5 +1,5 @@
 # Prototype Board (Teriyaki)
-[Teriyaki Image](teriyaki.png)
+![Teriyaki Image](teriyaki.png)
 
 # Real Board
 
