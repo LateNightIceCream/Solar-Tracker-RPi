@@ -1,0 +1,41 @@
+
+TARGET   = ST
+
+CC       = gcc
+# compiling flags here
+CFLAGS   = -Wall -g -O0 -pthread -pipe -I.
+GTKLIB   =`pkg-config --cflags --libs gtk+-3.0`
+
+LINKER   = gcc
+# linking flags here
+LFLAGS   = -Wall -I. -lm -pthread $(GTKLIB) -export-dynamic
+
+# change these to proper directories where each file should be
+SRCDIR   = src
+OBJDIR   = obj
+BINDIR   = bin
+
+SOURCES  := $(wildcard $(SRCDIR)/*.c)
+INCLUDES := $(wildcard $(SRCDIR)/*.h)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+rm       = rm -f
+
+
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LINKER) $(OBJECTS) $(LFLAGS) -o $@
+	@echo "Linking complete!"
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+.PHONY: clean
+clean:
+	@$(rm) $(OBJECTS)
+	@echo "Cleanup complete!"
+
+.PHONY: remove
+remove: clean
+	@$(rm) $(BINDIR)/$(TARGET)
+	@echo "Executable removed!"# change application name here (executable output name)
+TARGET=ST
