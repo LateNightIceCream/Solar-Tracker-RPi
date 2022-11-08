@@ -47,31 +47,57 @@ init_elv (int fd) {
     init_motor_s(&elv_struct, fd, ELV_HOME_POS, MAX_STEPS_ELV, "\ne+0000\n", "\nhe\n", "ELV");
 }
 
+void
+_init_azm(int fd) {
+
+    if (fd < 0) {
+        fprintf(stderr, "elv_struct.fd < 0");
+        return;
+    }
+
+    azm_struct.fd = fd;
+    strcpy(azm_struct.command_buffer, "\na+0000\n");
+    azm_struct.current_pos = 0;
+}
+
+void
+_init_elv(int fd) {
+
+    if (fd < 0) {
+        fprintf(stderr, "elv_struct.fd < 0");
+        return;
+    }
+
+    elv_struct.fd = fd;
+    strcpy(elv_struct.command_buffer, "\ne+0000\n");
+    elv_struct.current_pos = 0;
+}
+
 //------------------------------------------------------------------------------
 
 static void
-await_response (struct motor_s m, char* msg) {
+await_response (struct motor_s m) {
     int n = 0;
     char buffer[512]; // 1024
 
     do {
         n = read(m.fd, buffer, sizeof(buffer));
-        log_motor_msg(msg);
+        log_motor_msg("%s: Waiting for response", m.name);
         usleep(100); // change to non depr function
     } while (n == 0);
 
-    log_motor_msg("Response received");
+    log_motor_msg("%s: Response received", m.name);
 
 }
 
 void
 await_response_azm () {
-    await_response (azm_struct, "Waiting for AZM response...");
+    await_response (azm_struct);
 }
 
 void
 await_response_elv () {
-    await_response (elv_struct, "Waiting for ELV response...");
+    await_response (elv_struct);
 }
 
 void
@@ -83,6 +109,20 @@ _await_response_azm () {
     do {
         n = read(azm_struct.fd, buffer, sizeof(buffer));
         printf("waiting for azm response\n");
+        usleep(100);
+    } while (n == 0);
+
+}
+
+void
+_await_response_elv () {
+
+    int n = 0;
+    char buffer[1024];
+
+    do {
+        n = read(elv_struct.fd, buffer, sizeof(buffer));
+        printf("waiting for elv response\n");
         usleep(100);
     } while (n == 0);
 
@@ -103,7 +143,7 @@ home (struct motor_s* m) {
     n = write(m->fd, m->home_command, sizeof(m->home_command));
 
     if (n != sizeof(m->home_command)) {
-        log_motor_msg("Write error on home");
+        log_motor_msg("%s: Write error on home", m->name);
     }
 
     m->current_pos = m->home_pos;
@@ -129,6 +169,18 @@ _home_azm () {
 
     write(azm_struct.fd, "\nha\n", sizeof("\nha\n"));
     azm_struct.current_pos = AZM_HOME_POS;
+}
+
+void
+_home_elv () {
+
+    if (elv_struct.fd < 0) {
+        fprintf(stderr, "elv_struct.fd < 0");
+        return;
+    }
+
+    write(elv_struct.fd, "\nhe\n", sizeof("\nhe\n"));
+    elv_struct.current_pos = ELV_HOME_POS;
 }
 
 //------------------------------------------------------------------------------
@@ -180,6 +232,8 @@ turn_steps (struct motor_s* m, int steps) {
             steps_to_deg(m->current_pos - prev_pos)
     );
 
+    log_motor_msg("%s: writing %s\n", m->name, m->command_buffer);
+
     k = write(m->fd, m->command_buffer, 4 + n);
     // error checking
 }
@@ -191,53 +245,10 @@ turn_steps_azm (int steps) {
 
 void
 turn_steps_elv (int steps) {
-    turn_steps (&azm_struct, steps);
+    turn_steps (&elv_struct, steps);
 }
 
-void
-_turn_steps_azm (int steps) {
 
-    int n;
-    int prev_pos;
-
-    if (steps == 0) {
-        return;
-    }
-
-    if (steps > 6400 || steps < -6400) {
-        return;
-    }
-
-    if (steps + azm_struct.current_pos > MAX_STEPS_AZM) {
-        return;
-    }
-
-    prev_pos = azm_struct.current_pos;
-    azm_struct.current_pos += steps;
-
-    if (steps < 0) {
-        azm_struct.command_buffer[2] = '-';
-        steps = -steps;
-    } else {
-        azm_struct.command_buffer[2] = '+';
-    }
-
-    n = itoa(steps, &azm_struct.command_buffer[3]);
-
-    azm_struct.command_buffer[n + 3] = '\n';
-    azm_struct.command_buffer[n + 4] = '\0';
-
-    log_msg("AZM:\n\tturning: %d steps (%f°)\n\tnew pos: %d steps (%f°)\n\tdelta:%d steps (%f°)\n",
-            steps,
-            steps_to_deg(steps),
-            azm_struct.current_pos,
-            steps_to_deg(azm_struct.current_pos),
-            azm_struct.current_pos - prev_pos,
-            steps_to_deg(azm_struct.current_pos - prev_pos)
-    );
-
-    write(azm_struct.fd, azm_struct.command_buffer, 4 + n);
-}
 
 //------------------------------------------------------------------------------
 
@@ -259,16 +270,43 @@ turn_deg_elv (double deg) {
 
 void
 _turn_deg_azm (double deg) {
-
     int steps = deg_to_steps(deg);
     turn_steps_azm(steps);
+}
+
+void
+_turn_deg_elv (double deg) {
+
+    int steps = deg_to_steps(deg);
+    turn_steps_elv(steps);
 
 }
 
 //------------------------------------------------------------------------------
 
+static void
+seek_steps (struct motor_s* m, unsigned int target_steps) {
+
+    if (target_steps > m->max_pos) {
+        return;
+    }
+
+    int steps = target_steps - m->current_pos;
+    turn_steps(m, steps);
+}
+
 void
 seek_steps_azm (unsigned int target_steps) {
+    seek_steps(&azm_struct, target_steps);
+}
+
+void
+seek_steps_elv (unsigned int target_steps) {
+    seek_steps(&elv_struct, target_steps);
+}
+
+void
+_seek_steps_azm (unsigned int target_steps) {
 
     if (target_steps > MAX_STEPS_AZM) {
         return;
@@ -280,61 +318,57 @@ seek_steps_azm (unsigned int target_steps) {
 
 }
 
+void
+_seek_steps_elv (unsigned int target_steps) {
+
+    if (target_steps > MAX_STEPS_ELV) {
+        return;
+    }
+
+    int steps = target_steps - elv_struct.current_pos;
+
+    turn_steps_elv(steps);
+
+}
 
 //------------------------------------------------------------------------------
 
+static void
+seek_deg (struct motor_s* m, double deg) {
+    int steps = deg_to_steps(deg);
+    seek_steps(m, steps);
+}
+
 void
 seek_deg_azm (double deg) {
+    seek_deg(&azm_struct, deg);
+}
+
+void
+seek_deg_elv (double deg) {
+    seek_deg(&elv_struct, deg);
+}
+
+void
+_seek_deg_azm (double deg) {
 
     int steps = deg_to_steps(deg);
     seek_steps_azm(steps);
 
 }
 
+void
+_seek_deg_elv (double deg) {
+
+    int steps = deg_to_steps(deg);
+    seek_steps_elv(steps);
+
+}
 
 //------------------------------------------------------------------------------
 
 // elevation stuff, make more general later w/ struct as argument
 //------------------------------------------------------------------------------
-
-void
-_init_elv(int fd) {
-
-    if (fd < 0) {
-        fprintf(stderr, "elv_struct.fd < 0");
-        return;
-    }
-
-    elv_struct.fd = fd;
-    strcpy(elv_struct.command_buffer, "\ne+0000\n");
-    elv_struct.current_pos = 0;
-}
-
-void
-_await_response_elv () {
-
-    int n = 0;
-    char buffer[1024];
-
-    do {
-        n = read(elv_struct.fd, buffer, sizeof(buffer));
-        printf("waiting for elv response\n");
-        usleep(100);
-    } while (n == 0);
-
-}
-
-void
-_home_elv () {
-
-    if (elv_struct.fd < 0) {
-        fprintf(stderr, "elv_struct.fd < 0");
-        return;
-    }
-
-    write(elv_struct.fd, "\nhe\n", sizeof("\nhe\n"));
-    elv_struct.current_pos = ELV_HOME_POS;
-}
 
 void
 _turn_steps_elv (int steps) {
@@ -382,36 +416,49 @@ _turn_steps_elv (int steps) {
 
 }
 
-
 void
-_turn_deg_elv (double deg) {
+_turn_steps_azm (int steps) {
 
-    int steps = deg_to_steps(deg);
-    turn_steps_elv(steps);
+    int n;
+    int prev_pos;
 
-}
-
-void
-seek_steps_elv (unsigned int target_steps) {
-
-    if (target_steps > MAX_STEPS_ELV) {
+    if (steps == 0) {
         return;
     }
 
-    int steps = target_steps - elv_struct.current_pos;
+    if (steps > 6400 || steps < -6400) {
+        return;
+    }
 
-    turn_steps_elv(steps);
+    if (steps + azm_struct.current_pos > MAX_STEPS_AZM) {
+        return;
+    }
 
+    prev_pos = azm_struct.current_pos;
+    azm_struct.current_pos += steps;
 
+    if (steps < 0) {
+        azm_struct.command_buffer[2] = '-';
+        steps = -steps;
+    } else {
+        azm_struct.command_buffer[2] = '+';
+    }
 
-}
+    n = itoa(steps, &azm_struct.command_buffer[3]);
 
-void
-seek_deg_elv (double deg) {
+    azm_struct.command_buffer[n + 3] = '\n';
+    azm_struct.command_buffer[n + 4] = '\0';
 
-    int steps = deg_to_steps(deg);
-    seek_steps_elv(steps);
+    log_msg("AZM:\n\tturning: %d steps (%f°)\n\tnew pos: %d steps (%f°)\n\tdelta:%d steps (%f°)\n",
+            steps,
+            steps_to_deg(steps),
+            azm_struct.current_pos,
+            steps_to_deg(azm_struct.current_pos),
+            azm_struct.current_pos - prev_pos,
+            steps_to_deg(azm_struct.current_pos - prev_pos)
+    );
 
+    write(azm_struct.fd, azm_struct.command_buffer, 4 + n);
 }
 
 //------------------------------------------------------------------------------

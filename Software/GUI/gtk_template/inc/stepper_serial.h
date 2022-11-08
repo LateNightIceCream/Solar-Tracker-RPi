@@ -16,7 +16,7 @@
 
 #define STEPS_PER_REVOLUTION 6400
 #define AZM_HOME_POS         0
-#define MAX_STEPS_AZM        STEPS_PER_REVOLUTION - 400
+#define MAX_STEPS_AZM        STEPS_PER_REVOLUTION - 800
 #define ELV_HOME_POS         -61
 #define MAX_STEPS_ELV        STEPS_PER_REVOLUTION / 2 - ELV_HOME_POS // *2?
 #define DEG_PER_STEP         0.05625 // 1.8/32

@@ -6,36 +6,20 @@
 #include <gtk/gtk.h>
 
 #include <common.h>
+#include <timers.h>
 
-#define AUTO_UPDATE_TIMER_INTERVAL 25
-#define CHECK_SERIAL_PORT_INTERVAL 1
-#define SPA_CALCULATION_INTERVAL   1
+int update_spa (spa_data* spa);
 
-struct App_widgets {
-    GtkWidget* window_main;
-    GtkWidget* window_setup;
-    GtkWidget* label_time_sys_value;
-    GtkWidget* label_current_azm;
-    GtkWidget* label_current_elv;
-    GtkWidget* label_serial_port_status;
-    GtkWidget* label_azm_target;
-    GtkWidget* label_azm_actual;
-    GtkWidget* label_elv_target;
-    GtkWidget* label_elv_actual;
-};
+void
+update_mode(enum Mode mode, struct App_widgets* widgets);
 
-
-gboolean sys_time_timer_handler(struct App_widgets* widgets);
-gboolean auto_update_timer_handler(struct App_widgets* widgets);
-gboolean spa_calculation_timer_handler(struct App_widgets* widgets);
-gboolean check_serial_port_timer_handler(struct App_widgets* widgets);
-
-void gtk_build_it (GtkBuilder* builder, struct App_widgets* widgets);
+void
+manual_controls_set_sensitive(struct App_widgets* widgets, gboolean bool);
 
 // 0: auto
 // 1: manual
 // 2: day
-static int mode = 0;
+static enum Mode current_mode = 0;
 static int serial_port = -1; // holds fd for serial port
 static int serial_port_connected = 0;
 
@@ -65,7 +49,9 @@ main (int argc, char *argv[])
     gtk_build_it(builder, widgets);
     g_object_unref(builder);
 
-    gtk_label_set_text(GTK_LABEL(widgets->label_serial_port_status), "Not connected");
+    // init auto mode
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(widgets->button_mode_auto),
+                                  TRUE);
 
     // 1 second timer for system time update
     g_timeout_add_seconds( 1,
@@ -113,10 +99,43 @@ sys_time_timer_handler (struct App_widgets* widgets) {
     return TRUE;
 }
 
-
 double get_delta_t_1 (int year) {
     int t = year - 2000;
     return 62.92 + 0.32217 * t + 0.005589 * t * t;
+}
+
+int
+update_spa (spa_data* spa) {
+
+    int result;
+    time_t t;
+    struct tm tstruct;
+
+    time(&t);
+    tstruct = *gmtime(&t);
+
+    spa->year          = tstruct.tm_year+1900;
+    spa->month         = tstruct.tm_mon+1;
+    spa->day           = tstruct.tm_mday;
+    spa->hour          = tstruct.tm_hour+2;
+    spa->minute        = tstruct.tm_min;
+    spa->second        = tstruct.tm_sec;
+    spa->timezone      = 2.0;
+    spa->delta_ut1     = 0;
+    spa->delta_t       = get_delta_t_1 (spa->year);
+    spa->longitude     = 11.470459;
+    spa->latitude      = 53.899963;
+    spa->elevation     = 8;
+    spa->pressure      = 500; // was 820
+    spa->temperature   = 10;
+    spa->slope         = 0;
+    spa->azm_rotation  = 0;
+    spa->atmos_refract = 0.5667;
+    spa->function      = SPA_ALL;
+
+    result = spa_calculate(spa);
+
+    return result;
 }
 
 // calculate spa
@@ -124,37 +143,12 @@ gboolean
 spa_calculation_timer_handler(struct App_widgets* widgets) {
 
     int result;
-    time_t t;
-    struct tm tstruct;
 
     // maybe outsource to other timer for display update
     char target_azm_label[64];
     char target_elv_label[64];
 
-    time(&t);
-
-    tstruct = *gmtime(&t);
-
-    spa.year          = tstruct.tm_year+1900;
-    spa.month         = tstruct.tm_mon+1;
-    spa.day           = tstruct.tm_mday;
-    spa.hour          = tstruct.tm_hour+2 - 5;
-    spa.minute        = tstruct.tm_min;
-    spa.second        = tstruct.tm_sec;
-    spa.timezone      = 2.0;
-    spa.delta_ut1     = 0;
-    spa.delta_t       = get_delta_t_1 (spa.year);
-    spa.longitude     = 11.470459;
-    spa.latitude      = 53.899963;
-    spa.elevation     = 8;
-    spa.pressure      = 500; // was 820
-    spa.temperature   = 10;
-    spa.slope         = 0;
-    spa.azm_rotation  = 0;
-    spa.atmos_refract = 0.5667;
-    spa.function      = SPA_ALL;
-
-    result = spa_calculate(&spa);
+    result = update_spa(&spa);
 
     if (result != 0) {
         printf("Spa result returned: %d\n", result);
@@ -163,7 +157,6 @@ spa_calculation_timer_handler(struct App_widgets* widgets) {
 
     target_deg_azm  = spa.azimuth;
     target_deg_elv  = 90.0 - spa.zenith;
-
 
     // display stuff
     sprintf(target_azm_label, "%.6f°", target_deg_azm);
@@ -180,6 +173,10 @@ auto_update_timer_handler(struct App_widgets* widgets) {
 
     char actual_azm_label[64];
     char actual_elv_label[64];
+
+    if (current_mode != AUTO) {
+        return TRUE;
+    }
 
     if (!serial_port_connected) {
         return TRUE;
@@ -215,16 +212,15 @@ check_serial_port_timer_handler(struct App_widgets* widgets) {
     } else {
         serial_port_connected = 0;
 
-        fprintf(stderr, "error accessing %s: ", PORT_FILE);
-        perror("");
+        //fprintf(stderr, "error accessing %s: ", PORT_FILE);
+        //perror("");
 
         if (close(serial_port) == -1) { // is expected to fail e.g. when file not opened
-            fprintf(stderr, "error accessing %s: ", PORT_FILE);
-            perror("");
+            //log_msg("Serial Port: error accessing %s: ", PORT_FILE);
+            //perror("");
         }
 
         sprintf(markup, "<span foreground='red'>Error accessing %s</span>", PORT_FILE);
-        //gtk_label_set_text(GTK_LABEL(widgets->label_serial_port_status), message);
         gtk_label_set_markup(GTK_LABEL(widgets->label_serial_port_status), markup);
 
         return TRUE;
@@ -265,25 +261,6 @@ check_serial_port_timer_handler(struct App_widgets* widgets) {
 }
 
 void
-gtk_build_it (GtkBuilder* builder, struct App_widgets* widgets) {
-
-    widgets->window_main   = GTK_WIDGET(gtk_builder_get_object( builder, "window_main"));
-    widgets->window_setup  = GTK_WIDGET(gtk_builder_get_object(builder, "window_setup"));
-
-    widgets->window_main   = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
-    widgets->window_setup  = GTK_WIDGET(gtk_builder_get_object(builder, "window_setup"));
-
-    widgets->label_time_sys_value     = GTK_WIDGET(gtk_builder_get_object(builder, "label_time_sys_value"));
-    widgets->label_serial_port_status = GTK_WIDGET(gtk_builder_get_object(builder, "label_serial_port_status"));
-    widgets->label_azm_target         = GTK_WIDGET(gtk_builder_get_object(builder, "label_azm_target"));
-    widgets->label_azm_actual         = GTK_WIDGET(gtk_builder_get_object(builder, "label_azm_actual"));
-    widgets->label_elv_target         = GTK_WIDGET(gtk_builder_get_object(builder, "label_elv_target"));
-    widgets->label_elv_actual         = GTK_WIDGET(gtk_builder_get_object(builder, "label_elv_actual"));
-
-    gtk_builder_connect_signals(builder, widgets);
-}
-
-void
 on_button_setup_clicked (GtkButton* button_setup, struct App_widgets* widgets) {
     g_print("SETUP Button clicked");
     gtk_widget_hide(widgets->window_main);
@@ -302,10 +279,71 @@ on_control_home_button_azm_clicked (GtkButton* button, struct App_widgets* widge
     home_azm();
 }
 
+void
+on_control_home_button_elv_clicked (GtkButton* button, struct App_widgets* widgets) {
+    home_elv();
+}
+
+// toggle buttons
+void
+on_button_mode_auto_clicked (GtkWidget* button, struct App_widgets* widgets) {
+    update_mode(AUTO, widgets);
+}
+
+void
+on_button_mode_manual_clicked (GtkButton* button, struct App_widgets* widgets) {
+    update_mode(MANUAL, widgets);
+}
+
+void
+on_button_mode_day_clicked (GtkWidget* button, struct App_widgets* widgets) {
+    update_mode(DAY, widgets);
+}
+
+// ---------------------
+
 // called when window is closed
 void
 on_window_main_destroy()
 {
     g_print("Goodbye!\n");
     gtk_main_quit();
+}
+
+void
+update_mode(enum Mode mode, struct App_widgets* widgets) {
+
+    current_mode = mode;
+
+    switch (mode) {
+        case AUTO:
+            gtk_label_set_text(GTK_LABEL(widgets->label_mode),
+                               "Auto");
+            log_msg("Setting mode to AUTO\n");
+
+            manual_controls_set_sensitive(widgets, FALSE);
+
+            break;
+        case MANUAL:
+            gtk_label_set_text(GTK_LABEL(widgets->label_mode),
+                               "Manual");
+            log_msg("Setting mode to MANUAL\n");
+
+            manual_controls_set_sensitive(widgets, TRUE);
+
+            break;
+        case DAY:
+            gtk_label_set_text(GTK_LABEL(widgets->label_mode),
+                               "Day");
+            log_msg("Setting mode to DAY\n");
+
+            manual_controls_set_sensitive(widgets, FALSE);
+            break;
+    }
+}
+
+void
+manual_controls_set_sensitive(struct App_widgets* widgets, gboolean bool) {
+    gtk_widget_set_sensitive (widgets->button_control_home_azm, bool);
+    gtk_widget_set_sensitive (widgets->button_control_home_elv, bool);
 }
