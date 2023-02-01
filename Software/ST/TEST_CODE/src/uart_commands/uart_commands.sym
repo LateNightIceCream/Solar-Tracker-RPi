@@ -1,0 +1,47 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000001 L
+  8 __xinit__command_number                                        000000 R
+  8 __xinit__uart_tx_done                                          000001 R
+  1 _command_buffer                                                000000 R
+  2 _command_number                                                000000 R
+  9 _get_steps_from_command                                        00003D GR
+  9 _init_command_buffer                                           000000 GR
+    _malloc                                                        ****** GX
+  9 _read_next_command                                             0000BA GR
+  1 _read_next_command_read_index_65536_45                         0000A1 R
+    _strtol                                                        ****** GX
+  9 _uart2_init                                                    000093 GR
+  9 _uart2_rx_isr                                                  000111 GR
+  1 _uart2_rx_isr_byte_index_65536_51                              0000A3 R
+  9 _uart2_tx_isr                                                  0000DF GR
+  1 _uart2_tx_isr_i_65536_48                                       0000A2 R
+  9 _uart2_write                                                   000070 GR
+  1 _uart_rx_buf                                                   000020 R
+  1 _uart_tx_buf                                                   00009F R
+  2 _uart_tx_done                                                  000001 R
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 2.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size      0   flags    0
+   1 DATA                                       size     A4   flags    0
+   2 INITIALIZED                                size      3   flags    0
+   3 DABS                                       size      0   flags    8
+   4 HOME                                       size      0   flags    0
+   5 GSINIT                                     size      C   flags    0
+   6 GSFINAL                                    size      0   flags    0
+   7 CONST                                      size      0   flags    0
+   8 INITIALIZER                                size      3   flags    0
+   9 CODE                                       size    15E   flags    0
+   A CABS                                       size      0   flags    8
+

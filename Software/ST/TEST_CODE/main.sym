@@ -1,0 +1,85 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000001 L
+  8 ___str_0                                                       000000 R
+  5 __interrupt_vect                                               000000 R
+  6 __sdcc_init_data                                               000000 R
+  5 __sdcc_program_startup                                         000060 R
+  3 __start__stack                                                 000000 R
+  9 __xinit__command_number                                        000007 R
+  9 __xinit__current_pos_azm                                       000003 R
+  9 __xinit__current_pos_elv                                       000005 R
+  9 __xinit__stepping_done                                         000002 R
+  9 __xinit__target_steps                                          000000 R
+  9 __xinit__uart_tx_done                                          000008 R
+  A _clk_out_enable                                                0003C7 GR
+  1 _command_buffer                                                000000 R
+  2 _command_number                                                000007 R
+  2 _current_pos_azm                                               000003 R
+  2 _current_pos_elv                                               000005 R
+  A _get_steps_from_command                                        00027C GR
+  A _home_azm                                                      0000F9 GR
+  A _home_elv                                                      000103 GR
+  A _hsi_configure                                                 00039D GR
+  A _init_command_buffer                                           00023F GR
+  A _main                                                          000000 GR
+    _malloc                                                        ****** GX
+  A _opt_write                                                     0003DC GR
+  A _port_c_isr                                                    00020E GR
+  A _port_init                                                     00007D GR
+  A _read_next_command                                             0002F9 GR
+  1 _read_next_command_read_index_65536_79                         0000A1 R
+  A _stepper_init                                                  0000F0 GR
+  2 _stepping_done                                                 000002 R
+    _strtol                                                        ****** GX
+  2 _target_steps                                                  000000 R
+  A _timer_init                                                    00019B R
+  A _timer_isr                                                     0001F8 GR
+  A _turn_steps_azm                                                00010D GR
+  A _turn_steps_elv                                                000154 GR
+  A _uart2_init                                                    0002D2 GR
+  A _uart2_rx_isr                                                  000350 GR
+  1 _uart2_rx_isr_byte_index_65536_85                              0000A3 R
+  A _uart2_tx_isr                                                  00031E GR
+  1 _uart2_tx_isr_i_65536_82                                       0000A2 R
+  A _uart2_write                                                   0002AF GR
+  1 _uart_rx_buf                                                   000020 R
+  1 _uart_tx_buf                                                   00009F R
+  2 _uart_tx_done                                                  000008 R
+    l_DATA                                                         ****** GX
+    l_INITIALIZER                                                  ****** GX
+    s_DATA                                                         ****** GX
+    s_GSINIT                                                       ****** GX
+    s_INITIALIZED                                                  ****** GX
+    s_INITIALIZER                                                  ****** GX
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size      0   flags    0
+   1 DATA                                       size     A4   flags    0
+   2 INITIALIZED                                size      A   flags    0
+   3 SSEG                                       size      1   flags    0
+   4 DABS                                       size      0   flags    8
+   5 HOME                                       size     63   flags    0
+   6 GSINIT                                     size     26   flags    0
+   7 GSFINAL                                    size      3   flags    0
+   8 CONST                                      size      3   flags    0
+   9 INITIALIZER                                size      A   flags    0
+   A CODE                                       size    407   flags    0
+   B CABS                                       size      0   flags    8
+

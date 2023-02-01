@@ -1,0 +1,59 @@
+XH3
+H B areas 4 global symbols
+M utility
+O -mstm8
+S .__.ABS. Def000000
+A _CODE size 0 flags 0 addr 0
+A DATA size 0 flags 0 addr 0
+A INITIALIZED size 0 flags 0 addr 0
+A DABS size 0 flags 8 addr 0
+A HOME size 0 flags 0 addr 0
+A GSINIT size 0 flags 0 addr 0
+A GSFINAL size 0 flags 0 addr 0
+A CONST size 0 flags 0 addr 0
+A INITIALIZER size 0 flags 0 addr 0
+A CODE size 6A flags 0 addr 0
+S _hsi_configure Def000000
+S _clk_out_enable Def00002A
+S _opt_write Def00003F
+A CABS size 0 flags 8 addr 0
+T 00 00 00
+R 00 00 00 09
+T 00 00 00
+R 00 00 00 09
+T 00 00 00 C6 50 C0 A5 02 27 F9
+R 00 00 00 09
+T 00 00 07
+R 00 00 00 09
+T 00 00 07 C6 50 C5 44 25 FA 35 E1 50 C4 35 00
+R 00 00 00 09
+T 00 00 13 50 C6
+R 00 00 00 09
+T 00 00 15
+R 00 00 00 09
+T 00 00 15 C6 50 C5 44 25 FA 72 12 50 C5
+R 00 00 00 09
+T 00 00 1F
+R 00 00 00 09
+T 00 00 1F C6 50 C5 44 25 FA 72 13 50 C5 81
+R 00 00 00 09
+T 00 00 2A
+R 00 00 00 09
+T 00 00 2A 72 10 50 11 72 10 50 12 72 10 50 13 C6
+R 00 00 00 09
+T 00 00 37 50 C9 AA 17 C7 50 C9 81
+R 00 00 00 09
+T 00 00 3F
+R 00 00 00 09
+T 00 00 3F 35 AE 50 64 35 56 50 64
+R 00 00 00 09
+T 00 00 47
+R 00 00 00 09
+T 00 00 47 C6 50 5F A5 08 27 F9 72 1E 50 5B 72 1F
+R 00 00 00 09
+T 00 00 54 50 5C 35 24 48 03 35 DB 48 04
+R 00 00 00 09
+T 00 00 5E
+R 00 00 00 09
+T 00 00 5E C6 50 5F A5 04 27 F9 72 17 50 5F 81
+R 00 00 00 09

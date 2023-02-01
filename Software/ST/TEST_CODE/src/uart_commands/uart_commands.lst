@@ -1,0 +1,359 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.0 #12072 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module uart_commands
+                                      6 	.optsdcc -mstm8
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _uart2_rx_isr
+                                     12 	.globl _uart2_tx_isr
+                                     13 	.globl _malloc
+                                     14 	.globl _strtol
+                                     15 	.globl _init_command_buffer
+                                     16 	.globl _get_steps_from_command
+                                     17 	.globl _uart2_write
+                                     18 	.globl _uart2_init
+                                     19 	.globl _read_next_command
+                                     20 ;--------------------------------------------------------
+                                     21 ; ram data
+                                     22 ;--------------------------------------------------------
+                                     23 	.area DATA
+      000000                         24 _command_buffer:
+      000000                         25 	.ds 32
+      000020                         26 _uart_rx_buf:
+      000020                         27 	.ds 127
+      00009F                         28 _uart_tx_buf:
+      00009F                         29 	.ds 2
+      0000A1                         30 _read_next_command_read_index_65536_45:
+      0000A1                         31 	.ds 1
+      0000A2                         32 _uart2_tx_isr_i_65536_48:
+      0000A2                         33 	.ds 1
+      0000A3                         34 _uart2_rx_isr_byte_index_65536_51:
+      0000A3                         35 	.ds 1
+                                     36 ;--------------------------------------------------------
+                                     37 ; ram data
+                                     38 ;--------------------------------------------------------
+                                     39 	.area INITIALIZED
+      000000                         40 _command_number:
+      000000                         41 	.ds 1
+      000001                         42 _uart_tx_done:
+      000001                         43 	.ds 2
+                                     44 ;--------------------------------------------------------
+                                     45 ; absolute external ram data
+                                     46 ;--------------------------------------------------------
+                                     47 	.area DABS (ABS)
+                                     48 
+                                     49 ; default segment ordering for linker
+                                     50 	.area HOME
+                                     51 	.area GSINIT
+                                     52 	.area GSFINAL
+                                     53 	.area CONST
+                                     54 	.area INITIALIZER
+                                     55 	.area CODE
+                                     56 
+                                     57 ;--------------------------------------------------------
+                                     58 ; global & static initialisations
+                                     59 ;--------------------------------------------------------
+                                     60 	.area HOME
+                                     61 	.area GSINIT
+                                     62 	.area GSFINAL
+                                     63 	.area GSINIT
+                                     64 ;	src/uart_commands/uart_commands.c: 100: static uint8_t read_index = 0; // reading position in command_buffer
+      000000 72 5Fu00uA1      [ 1]   65 	clr	_read_next_command_read_index_65536_45+0
+                                     66 ;	src/uart_commands/uart_commands.c: 123: static uint8_t i = 1;
+      000004 35 01u00uA2      [ 1]   67 	mov	_uart2_tx_isr_i_65536_48+0, #0x01
+                                     68 ;	src/uart_commands/uart_commands.c: 142: static uint8_t byte_index = 0;
+      000008 72 5Fu00uA3      [ 1]   69 	clr	_uart2_rx_isr_byte_index_65536_51+0
+                                     70 ;--------------------------------------------------------
+                                     71 ; Home
+                                     72 ;--------------------------------------------------------
+                                     73 	.area HOME
+                                     74 	.area HOME
+                                     75 ;--------------------------------------------------------
+                                     76 ; code
+                                     77 ;--------------------------------------------------------
+                                     78 	.area CODE
+                                     79 ;	src/uart_commands/uart_commands.c: 22: init_command_buffer () {
+                                     80 ;	-----------------------------------------
+                                     81 ;	 function init_command_buffer
+                                     82 ;	-----------------------------------------
+      000000                         83 _init_command_buffer:
+      000000 52 04            [ 2]   84 	sub	sp, #4
+                                     85 ;	src/uart_commands/uart_commands.c: 23: for (int i = 0; i < COMMAND_BUFFER_SIZE; i++){
+      000002 5F               [ 1]   86 	clrw	x
+      000003 1F 03            [ 2]   87 	ldw	(0x03, sp), x
+      000005                         88 00107$:
+      000005 1E 03            [ 2]   89 	ldw	x, (0x03, sp)
+      000007 A3 00 10         [ 2]   90 	cpw	x, #0x0010
+      00000A 2E 2E            [ 1]   91 	jrsge	00109$
+                                     92 ;	src/uart_commands/uart_commands.c: 24: command_buffer[i] = malloc(MAX_COMMAND_LENGTH*sizeof(char));
+      00000C 1E 03            [ 2]   93 	ldw	x, (0x03, sp)
+      00000E 58               [ 2]   94 	sllw	x
+      00000F 1Cr00r00         [ 2]   95 	addw	x, #(_command_buffer+0)
+      000012 1F 01            [ 2]   96 	ldw	(0x01, sp), x
+      000014 4B 12            [ 1]   97 	push	#0x12
+      000016 4B 00            [ 1]   98 	push	#0x00
+      000018 CDr00r00         [ 4]   99 	call	_malloc
+      00001B 5B 02            [ 2]  100 	addw	sp, #2
+      00001D 16 01            [ 2]  101 	ldw	y, (0x01, sp)
+      00001F 90 FF            [ 2]  102 	ldw	(y), x
+                                    103 ;	src/uart_commands/uart_commands.c: 25: char* command = command_buffer[i];
+      000021 1F 01            [ 2]  104 	ldw	(0x01, sp), x
+                                    105 ;	src/uart_commands/uart_commands.c: 26: for (int n = 0; n < MAX_COMMAND_LENGTH; n++) {
+      000023 5F               [ 1]  106 	clrw	x
+      000024                        107 00104$:
+      000024 A3 00 12         [ 2]  108 	cpw	x, #0x0012
+      000027 2E 0A            [ 1]  109 	jrsge	00108$
+                                    110 ;	src/uart_commands/uart_commands.c: 27: command[n] = 0;
+      000029 90 93            [ 1]  111 	ldw	y, x
+      00002B 72 F9 01         [ 2]  112 	addw	y, (0x01, sp)
+      00002E 90 7F            [ 1]  113 	clr	(y)
+                                    114 ;	src/uart_commands/uart_commands.c: 26: for (int n = 0; n < MAX_COMMAND_LENGTH; n++) {
+      000030 5C               [ 1]  115 	incw	x
+      000031 20 F1            [ 2]  116 	jra	00104$
+      000033                        117 00108$:
+                                    118 ;	src/uart_commands/uart_commands.c: 23: for (int i = 0; i < COMMAND_BUFFER_SIZE; i++){
+      000033 1E 03            [ 2]  119 	ldw	x, (0x03, sp)
+      000035 5C               [ 1]  120 	incw	x
+      000036 1F 03            [ 2]  121 	ldw	(0x03, sp), x
+      000038 20 CB            [ 2]  122 	jra	00107$
+      00003A                        123 00109$:
+                                    124 ;	src/uart_commands/uart_commands.c: 30: }
+      00003A 5B 04            [ 2]  125 	addw	sp, #4
+      00003C 81               [ 4]  126 	ret
+                                    127 ;	src/uart_commands/uart_commands.c: 35: get_steps_from_command (const char* cmd) {
+                                    128 ;	-----------------------------------------
+                                    129 ;	 function get_steps_from_command
+                                    130 ;	-----------------------------------------
+      00003D                        131 _get_steps_from_command:
+      00003D 52 02            [ 2]  132 	sub	sp, #2
+                                    133 ;	src/uart_commands/uart_commands.c: 40: if (cmd[1] == '\0') {
+      00003F 1E 05            [ 2]  134 	ldw	x, (0x05, sp)
+      000041 5C               [ 1]  135 	incw	x
+      000042 F6               [ 1]  136 	ld	a, (x)
+      000043 26 03            [ 1]  137 	jrne	00102$
+                                    138 ;	src/uart_commands/uart_commands.c: 41: return 0;
+      000045 5F               [ 1]  139 	clrw	x
+      000046 20 25            [ 2]  140 	jra	00107$
+      000048                        141 00102$:
+                                    142 ;	src/uart_commands/uart_commands.c: 44: steps = strtol(cmd + 1, &endptr, 10);
+      000048 4B 0A            [ 1]  143 	push	#0x0a
+      00004A 4B 00            [ 1]  144 	push	#0x00
+      00004C 90 96            [ 1]  145 	ldw	y, sp
+      00004E 72 A9 00 03      [ 2]  146 	addw	y, #3
+      000052 90 89            [ 2]  147 	pushw	y
+      000054 89               [ 2]  148 	pushw	x
+      000055 CDr00r00         [ 4]  149 	call	_strtol
+      000058 5B 06            [ 2]  150 	addw	sp, #6
+      00005A 51               [ 1]  151 	exgw	x, y
+                                    152 ;	src/uart_commands/uart_commands.c: 46: if (endptr == cmd || !(*endptr == '\0' || *endptr == '\n')) {
+      00005B 1E 01            [ 2]  153 	ldw	x, (0x01, sp)
+      00005D 13 05            [ 2]  154 	cpw	x, (0x05, sp)
+      00005F 27 09            [ 1]  155 	jreq	00103$
+      000061 1E 01            [ 2]  156 	ldw	x, (0x01, sp)
+      000063 F6               [ 1]  157 	ld	a, (x)
+      000064 27 06            [ 1]  158 	jreq	00104$
+      000066 A1 0A            [ 1]  159 	cp	a, #0x0a
+      000068 27 02            [ 1]  160 	jreq	00104$
+      00006A                        161 00103$:
+                                    162 ;	src/uart_commands/uart_commands.c: 47: return 0;
+      00006A 5F               [ 1]  163 	clrw	x
+                                    164 ;	src/uart_commands/uart_commands.c: 50: return steps;
+      00006B 21                     165 	.byte 0x21
+      00006C                        166 00104$:
+      00006C 93               [ 1]  167 	ldw	x, y
+      00006D                        168 00107$:
+                                    169 ;	src/uart_commands/uart_commands.c: 51: }
+      00006D 5B 02            [ 2]  170 	addw	sp, #2
+      00006F 81               [ 4]  171 	ret
+                                    172 ;	src/uart_commands/uart_commands.c: 56: uart2_write(char *str) {
+                                    173 ;	-----------------------------------------
+                                    174 ;	 function uart2_write
+                                    175 ;	-----------------------------------------
+      000070                        176 _uart2_write:
+                                    177 ;	src/uart_commands/uart_commands.c: 58: uart_tx_buf = str;
+      000070 1E 03            [ 2]  178 	ldw	x, (0x03, sp)
+                                    179 ;	src/uart_commands/uart_commands.c: 59: UART2_DR    = uart_tx_buf[0];
+      000072 CFu00u9F         [ 2]  180 	ldw	_uart_tx_buf+0, x
+      000075 F6               [ 1]  181 	ld	a, (x)
+      000076 C7 52 41         [ 1]  182 	ld	0x5241, a
+                                    183 ;	src/uart_commands/uart_commands.c: 60: UART2_CR2  |= TIEN;
+      000079 C6 52 45         [ 1]  184 	ld	a, 0x5245
+      00007C AA 80            [ 1]  185 	or	a, #0x80
+      00007E C7 52 45         [ 1]  186 	ld	0x5245, a
+                                    187 ;	src/uart_commands/uart_commands.c: 64: while(!uart_tx_done)
+      000081                        188 00101$:
+      000081 CEu00u01         [ 2]  189 	ldw	x, _uart_tx_done+0
+      000084 26 03            [ 1]  190 	jrne	00103$
+                                    191 ;	src/uart_commands/uart_commands.c: 65: __asm__("wfi");
+      000086 8F               [10]  192 	wfi
+      000087 20 F8            [ 2]  193 	jra	00101$
+      000089                        194 00103$:
+                                    195 ;	src/uart_commands/uart_commands.c: 67: UART2_CR2 &= ~TIEN;
+      000089 72 1F 52 45      [ 1]  196 	bres	21061, #7
+                                    197 ;	src/uart_commands/uart_commands.c: 69: uart_tx_done = 0;
+      00008D 5F               [ 1]  198 	clrw	x
+      00008E CFu00u01         [ 2]  199 	ldw	_uart_tx_done+0, x
+                                    200 ;	src/uart_commands/uart_commands.c: 71: return 0;
+      000091 5F               [ 1]  201 	clrw	x
+                                    202 ;	src/uart_commands/uart_commands.c: 72: }
+      000092 81               [ 4]  203 	ret
+                                    204 ;	src/uart_commands/uart_commands.c: 77: uart2_init () {
+                                    205 ;	-----------------------------------------
+                                    206 ;	 function uart2_init
+                                    207 ;	-----------------------------------------
+      000093                        208 _uart2_init:
+                                    209 ;	src/uart_commands/uart_commands.c: 79: UART2_CR2 |= TEN; // Transmitter enable
+      000093 72 16 52 45      [ 1]  210 	bset	21061, #3
+                                    211 ;	src/uart_commands/uart_commands.c: 80: UART2_CR2 |= REN; // Receiver enable
+      000097 72 14 52 45      [ 1]  212 	bset	21061, #2
+                                    213 ;	src/uart_commands/uart_commands.c: 82: UART2_CR3 &= ~(STOP_H | STOP_L); // 1 stop bit
+      00009B C6 52 46         [ 1]  214 	ld	a, 0x5246
+      00009E A4 CF            [ 1]  215 	and	a, #0xcf
+      0000A0 C7 52 46         [ 1]  216 	ld	0x5246, a
+                                    217 ;	src/uart_commands/uart_commands.c: 83: UART2_CR1  = 0;
+      0000A3 35 00 52 44      [ 1]  218 	mov	0x5244+0, #0x00
+                                    219 ;	src/uart_commands/uart_commands.c: 86: UART2_BRR2 = 0x03;
+      0000A7 35 03 52 43      [ 1]  220 	mov	0x5243+0, #0x03
+                                    221 ;	src/uart_commands/uart_commands.c: 87: UART2_BRR1 = 0x68;
+      0000AB 35 68 52 42      [ 1]  222 	mov	0x5242+0, #0x68
+                                    223 ;	src/uart_commands/uart_commands.c: 89: UART2_CR2 |= RIEN;
+      0000AF C6 52 45         [ 1]  224 	ld	a, 0x5245
+      0000B2 AA 20            [ 1]  225 	or	a, #0x20
+      0000B4 C7 52 45         [ 1]  226 	ld	0x5245, a
+                                    227 ;	src/uart_commands/uart_commands.c: 91: init_command_buffer();
+                                    228 ;	src/uart_commands/uart_commands.c: 92: }
+      0000B7 CCr00r00         [ 2]  229 	jp	_init_command_buffer
+                                    230 ;	src/uart_commands/uart_commands.c: 98: read_next_command () {
+                                    231 ;	-----------------------------------------
+                                    232 ;	 function read_next_command
+                                    233 ;	-----------------------------------------
+      0000BA                        234 _read_next_command:
+                                    235 ;	src/uart_commands/uart_commands.c: 103: while(command_number == read_index)
+      0000BA                        236 00101$:
+      0000BA C6u00uA1         [ 1]  237 	ld	a, _read_next_command_read_index_65536_45+0
+      0000BD C1u00u00         [ 1]  238 	cp	a, _command_number+0
+      0000C0 26 03            [ 1]  239 	jrne	00103$
+                                    240 ;	src/uart_commands/uart_commands.c: 104: __asm__("wfi");
+      0000C2 8F               [10]  241 	wfi
+      0000C3 20 F5            [ 2]  242 	jra	00101$
+      0000C5                        243 00103$:
+                                    244 ;	src/uart_commands/uart_commands.c: 107: command = command_buffer[read_index];
+      0000C5 5F               [ 1]  245 	clrw	x
+      0000C6 C6u00uA1         [ 1]  246 	ld	a, _read_next_command_read_index_65536_45+0
+      0000C9 97               [ 1]  247 	ld	xl, a
+      0000CA 58               [ 2]  248 	sllw	x
+      0000CB DEu00u00         [ 2]  249 	ldw	x, (_command_buffer+0, x)
+                                    250 ;	src/uart_commands/uart_commands.c: 109: read_index++;
+      0000CE 72 5Cu00uA1      [ 1]  251 	inc	_read_next_command_read_index_65536_45+0
+                                    252 ;	src/uart_commands/uart_commands.c: 111: if (read_index > (COMMAND_BUFFER_SIZE - 1)) {
+      0000D2 C6u00uA1         [ 1]  253 	ld	a, _read_next_command_read_index_65536_45+0
+      0000D5 A1 0F            [ 1]  254 	cp	a, #0x0f
+      0000D7 22 01            [ 1]  255 	jrugt	00126$
+      0000D9 81               [ 4]  256 	ret
+      0000DA                        257 00126$:
+                                    258 ;	src/uart_commands/uart_commands.c: 112: read_index = 0;
+      0000DA 72 5Fu00uA1      [ 1]  259 	clr	_read_next_command_read_index_65536_45+0
+                                    260 ;	src/uart_commands/uart_commands.c: 115: return command;
+                                    261 ;	src/uart_commands/uart_commands.c: 116: }
+      0000DE 81               [ 4]  262 	ret
+                                    263 ;	src/uart_commands/uart_commands.c: 121: uart2_tx_isr(void) __interrupt(IRQ_UART2_TX) {
+                                    264 ;	-----------------------------------------
+                                    265 ;	 function uart2_tx_isr
+                                    266 ;	-----------------------------------------
+      0000DF                        267 _uart2_tx_isr:
+                                    268 ;	src/uart_commands/uart_commands.c: 125: UART2_DR = uart_tx_buf[i];
+      0000DF C6u00uA0         [ 1]  269 	ld	a, _uart_tx_buf+1
+      0000E2 CBu00uA2         [ 1]  270 	add	a, _uart2_tx_isr_i_65536_48+0
+      0000E5 97               [ 1]  271 	ld	xl, a
+      0000E6 C6u00u9F         [ 1]  272 	ld	a, _uart_tx_buf+0
+      0000E9 A9 00            [ 1]  273 	adc	a, #0x00
+      0000EB 95               [ 1]  274 	ld	xh, a
+      0000EC F6               [ 1]  275 	ld	a, (x)
+      0000ED C7 52 41         [ 1]  276 	ld	0x5241, a
+                                    277 ;	src/uart_commands/uart_commands.c: 127: if (uart_tx_buf[i] == '\0') {
+      0000F0 C6u00uA0         [ 1]  278 	ld	a, _uart_tx_buf+1
+      0000F3 CBu00uA2         [ 1]  279 	add	a, _uart2_tx_isr_i_65536_48+0
+      0000F6 97               [ 1]  280 	ld	xl, a
+      0000F7 C6u00u9F         [ 1]  281 	ld	a, _uart_tx_buf+0
+      0000FA A9 00            [ 1]  282 	adc	a, #0x00
+      0000FC 95               [ 1]  283 	ld	xh, a
+      0000FD F6               [ 1]  284 	ld	a, (x)
+      0000FE 26 0C            [ 1]  285 	jrne	00102$
+                                    286 ;	src/uart_commands/uart_commands.c: 128: uart_tx_done = 1;
+      000100 AE 00 01         [ 2]  287 	ldw	x, #0x0001
+      000103 CFu00u01         [ 2]  288 	ldw	_uart_tx_done+0, x
+                                    289 ;	src/uart_commands/uart_commands.c: 129: i = 1;
+      000106 35 01u00uA2      [ 1]  290 	mov	_uart2_tx_isr_i_65536_48+0, #0x01
+                                    291 ;	src/uart_commands/uart_commands.c: 130: return;
+      00010A 20 04            [ 2]  292 	jra	00103$
+      00010C                        293 00102$:
+                                    294 ;	src/uart_commands/uart_commands.c: 133: i++;
+      00010C 72 5Cu00uA2      [ 1]  295 	inc	_uart2_tx_isr_i_65536_48+0
+      000110                        296 00103$:
+                                    297 ;	src/uart_commands/uart_commands.c: 134: }
+      000110 80               [11]  298 	iret
+                                    299 ;	src/uart_commands/uart_commands.c: 139: uart2_rx_isr(void) __interrupt(IRQ_UART2_RX) {
+                                    300 ;	-----------------------------------------
+                                    301 ;	 function uart2_rx_isr
+                                    302 ;	-----------------------------------------
+      000111                        303 _uart2_rx_isr:
+      000111 52 02            [ 2]  304 	sub	sp, #2
+                                    305 ;	src/uart_commands/uart_commands.c: 145: command = command_buffer[command_number];
+      000113 C6u00u00         [ 1]  306 	ld	a, _command_number+0
+      000116 5F               [ 1]  307 	clrw	x
+      000117 97               [ 1]  308 	ld	xl, a
+      000118 58               [ 2]  309 	sllw	x
+      000119 DEu00u00         [ 2]  310 	ldw	x, (_command_buffer+0, x)
+      00011C 1F 01            [ 2]  311 	ldw	(0x01, sp), x
+                                    312 ;	src/uart_commands/uart_commands.c: 149: command[byte_index] = UART2_DR;
+      00011E 5F               [ 1]  313 	clrw	x
+      00011F C6u00uA3         [ 1]  314 	ld	a, _uart2_rx_isr_byte_index_65536_51+0
+      000122 97               [ 1]  315 	ld	xl, a
+      000123 72 FB 01         [ 2]  316 	addw	x, (0x01, sp)
+      000126 C6 52 41         [ 1]  317 	ld	a, 0x5241
+      000129 F7               [ 1]  318 	ld	(x), a
+                                    319 ;	src/uart_commands/uart_commands.c: 151: if (command[byte_index] == '\n') {
+      00012A 5F               [ 1]  320 	clrw	x
+      00012B C6u00uA3         [ 1]  321 	ld	a, _uart2_rx_isr_byte_index_65536_51+0
+      00012E 97               [ 1]  322 	ld	xl, a
+      00012F 72 FB 01         [ 2]  323 	addw	x, (0x01, sp)
+      000132 F6               [ 1]  324 	ld	a, (x)
+      000133 A1 0A            [ 1]  325 	cp	a, #0x0a
+      000135 26 15            [ 1]  326 	jrne	00104$
+                                    327 ;	src/uart_commands/uart_commands.c: 153: byte_index = 0;
+      000137 72 5Fu00uA3      [ 1]  328 	clr	_uart2_rx_isr_byte_index_65536_51+0
+                                    329 ;	src/uart_commands/uart_commands.c: 155: command_number++;
+      00013B 72 5Cu00u00      [ 1]  330 	inc	_command_number+0
+                                    331 ;	src/uart_commands/uart_commands.c: 157: if (command_number > (COMMAND_BUFFER_SIZE - 1)) {
+      00013F C6u00u00         [ 1]  332 	ld	a, _command_number+0
+      000142 A1 0F            [ 1]  333 	cp	a, #0x0f
+      000144 23 15            [ 2]  334 	jrule	00107$
+                                    335 ;	src/uart_commands/uart_commands.c: 158: command_number = 0;
+      000146 72 5Fu00u00      [ 1]  336 	clr	_command_number+0
+                                    337 ;	src/uart_commands/uart_commands.c: 161: return;
+      00014A 20 0F            [ 2]  338 	jra	00107$
+      00014C                        339 00104$:
+                                    340 ;	src/uart_commands/uart_commands.c: 164: byte_index++;
+      00014C 72 5Cu00uA3      [ 1]  341 	inc	_uart2_rx_isr_byte_index_65536_51+0
+                                    342 ;	src/uart_commands/uart_commands.c: 166: if (byte_index > (MAX_COMMAND_LENGTH - 1))
+      000150 C6u00uA3         [ 1]  343 	ld	a, _uart2_rx_isr_byte_index_65536_51+0
+      000153 A1 11            [ 1]  344 	cp	a, #0x11
+      000155 23 04            [ 2]  345 	jrule	00107$
+                                    346 ;	src/uart_commands/uart_commands.c: 167: byte_index = 0;
+      000157 72 5Fu00uA3      [ 1]  347 	clr	_uart2_rx_isr_byte_index_65536_51+0
+      00015B                        348 00107$:
+                                    349 ;	src/uart_commands/uart_commands.c: 168: }
+      00015B 5B 02            [ 2]  350 	addw	sp, #2
+      00015D 80               [11]  351 	iret
+                                    352 	.area CODE
+                                    353 	.area CONST
+                                    354 	.area INITIALIZER
+      000000                        355 __xinit__command_number:
+      000000 00                     356 	.db #0x00	; 0
+      000001                        357 __xinit__uart_tx_done:
+      000001 00 00                  358 	.dw #0x0000
+                                    359 	.area CABS (ABS)

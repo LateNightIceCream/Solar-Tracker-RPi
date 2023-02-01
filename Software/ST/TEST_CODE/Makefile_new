@@ -1,0 +1,45 @@
+.POSIX:
+.SUFFIXES: .c .rel .ihx
+
+OUT   = ST.ihx
+
+CC = sdcc
+
+LIB = -Lstm8_libs/ -Llib_stm8.lib
+INC = -Istm8_libs/ -Iinc/ -Iinc/*/
+SRC = src/
+
+CFLAGS = -lstm8 -mstm8 --out-fmt-ihx $(LIB) $(INC)
+
+SOURCES  = $(wildcard $(SRC)*/*.c)
+SOURCES += $(wildcard $(SRC)*.c)
+RELS     = $(patsubst %.c, %.rel, $(SOURCES))
+
+MAINSRC = main.c
+MAINREL = main.rel
+
+$(OUT): $(MAINREL) $(RELS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+#vpath %.c src/
+
+.c.rel:
+	$(CC) -c $(CFLAGS) $< -o $@
+
+flash: $(OUT)
+	stm8flash -cstlinkv2 -pstm8s105?6 -w $(OUT)
+
+# there is probably a prettier way but whatever :D
+# maybe whitelist .c
+RMLIST  = $(patsubst %.c, %.rel, $(SOURCES))
+RMLIST += $(patsubst %.c, %.map, $(SOURCES))
+RMLIST += $(patsubst %.c, %.sym, $(SOURCES))
+RMLIST += $(patsubst %.c, %.rst, $(SOURCES))
+RMLIST += $(patsubst %.c, %.asm, $(SOURCES))
+RMLIST += $(patsubst %.c, %.lk, $(SOURCES))
+RMLIST += $(patsubst %.c, %.lst, $(SOURCES))
+RMLIST += $(patsubst %.c, %.o, $(SOURCES))
+
+clean:
+	rm -rf $(RMLIST)
+	rm -rf *.o *.map *.rel *.sym *.rst *.asm *.lk *.lst

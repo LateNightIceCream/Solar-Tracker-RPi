@@ -1,0 +1,37 @@
+XH3
+H B areas 2 global symbols
+M portconfig
+O -mstm8
+S .__.ABS. Def000000
+A _CODE size 0 flags 0 addr 0
+A DATA size 0 flags 0 addr 0
+A INITIALIZED size 0 flags 0 addr 0
+A DABS size 0 flags 8 addr 0
+A HOME size 0 flags 0 addr 0
+A GSINIT size 0 flags 0 addr 0
+A GSFINAL size 0 flags 0 addr 0
+A CONST size 0 flags 0 addr 0
+A INITIALIZER size 0 flags 0 addr 0
+A CODE size 67 flags 0 addr 0
+S _port_init Def000000
+A CABS size 0 flags 8 addr 0
+T 00 00 00
+R 00 00 00 09
+T 00 00 00 72 16 50 0C 72 16 50 0D 72 17 50 0E 72
+R 00 00 00 09
+T 00 00 0D 16 50 0A 72 15 50 07 72 10 50 07 72 10
+R 00 00 00 09
+T 00 00 1A 50 08 72 11 50 09 72 18 50 07 72 18
+R 00 00 00 09
+T 00 00 26 50 08 72 19 50 09 72 12 50 0C 72 12
+R 00 00 00 09
+T 00 00 32 50 0D 72 13 50 0E 72 14 50 0C 72 14
+R 00 00 00 09
+T 00 00 3E 50 0D 72 15 50 0E 72 19 50 0C 72 19
+R 00 00 00 09
+T 00 00 4A 50 0D C6 50 0E AA 10 C7 50 0E 9B C6
+R 00 00 00 09
+T 00 00 56 50 A0 AA 10 C7 50 A0 C6 50 A0 A4 DF C7
+R 00 00 00 09
+T 00 00 63 50 A0 9A 81
+R 00 00 00 09

@@ -1,0 +1,29 @@
+.POSIX:
+.SUFFIXES: .c .rel .ihx
+
+PNAME = ST
+OUT = $(PNAME).ihx
+
+CC = sdcc
+
+LIB    = -Lstm8_libs/ -Llib_stm8.lib
+INC    = -Istm8_libs/ -Iinc/ -Iinc/*/
+CFLAGS = -lstm8 -mstm8 --out-fmt-ihx
+
+MAINSRC =  main.c
+SRC     =  src/
+SOURCES =  $(wildcard $(SRC)*/*.c)
+SOURCES += $(wildcard $(SRC)*.c)
+RELS    =  $(patsubst %.c, %.rel, $(SOURCES))
+
+$(OUT): $(RELS) $(MAINSRC)
+	$(CC) $(CFLAGS) $(LIB) $(INC) $< -o $@
+
+%.rel: %.c
+	$(CC) $(CFLAGS) $(LIB) $(INC) -c $< -o $@
+
+flash: $(OUT)
+	stm8flash -cstlinkv2 -pstm8s105?6 -w $(OUT)
+
+clean:
+	rm -rf *.o *.map *.rel *.sym *.rst *.asm *.lk *.lst
